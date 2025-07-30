@@ -82,7 +82,7 @@
     let currentFilter = 'none';
 
     // Access the camera
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
       .then(stream => {
         video.srcObject = stream;
         video.onloadedmetadata = () => {
@@ -128,7 +128,12 @@
 
     // Apply filter to video feed
     function applyFilter() {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Flip the video horizontally
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+      ctx.restore();
+
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
