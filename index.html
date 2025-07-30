@@ -169,6 +169,8 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const photo = document.getElementById('photo');
+    const captureBtn = document.getElementById('capture-btn');
+    const focusBtn = document.getElementById('focus-btn');
     let currentFilter = 'none';
     let stream = null;
     let lastFrameTime = 0;
@@ -205,8 +207,14 @@
     startCamera();
 
     // Focus button handler
-    document.getElementById('focus-btn').addEventListener('click', () => {
+    focusBtn.addEventListener('click', () => {
       startCamera();
+    });
+
+    // Capture button handler
+    captureBtn.addEventListener('click', () => {
+      console.log('Capture button clicked'); // Debug log
+      capturePhoto();
     });
 
     // Filter definitions
@@ -329,11 +337,15 @@
 
     // Capture photo
     function capturePhoto() {
-      const link = document.createElement('a');
-      link.download = `real_glow_photo_${new Date().toISOString()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      photo.src = link.href;
-      link.click();
+      try {
+        const link = document.createElement('a');
+        link.download = `real_glow_photo_${new Date().toISOString()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        photo.src = link.href;
+        link.click();
+      } catch (err) {
+        alert('Error capturing photo: ' + err.message);
+      }
     }
   </script>
 </body>
