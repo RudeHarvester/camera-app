@@ -32,7 +32,7 @@
     }
     #canvas {
       width: 100%;
-      height: calc(100vh - 140px); /* Full height minus header and footer */
+      height: calc(100vh - 160px); /* Adjusted for taller filter buttons */
       object-fit: contain;
       display: block;
       margin-top: 44px; /* Height of header */
@@ -50,7 +50,7 @@
       white-space: nowrap;
       z-index: 1000;
       display: flex;
-      gap: 10px;
+      gap: 12px;
       justify-content: flex-start;
       scrollbar-width: thin;
       scrollbar-color: #6200ea #000000;
@@ -63,25 +63,24 @@
       border-radius: 4px;
     }
     .filter-btn {
-      padding: 8px 16px;
+      padding: 12px 20px; /* Taller buttons */
       font-size: 14px;
       cursor: pointer;
       color: #ffffff;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       display: inline-block;
-      min-width: 100px;
+      min-width: 120px; /* Slightly wider for better text wrapping */
       text-align: center;
+      line-height: 1.2; /* Improved text wrapping */
       transition: transform 0.2s;
     }
     .filter-btn:hover {
       transform: scale(1.05);
     }
-    #capture-btn {
+    #capture-btn, #focus-btn {
       position: fixed;
-      bottom: 60px; /* Above filter buttons */
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 80px; /* Above filter buttons */
       width: 60px;
       height: 60px;
       background-color: rgba(255, 255, 255, 0.5);
@@ -94,7 +93,15 @@
       justify-content: center;
       font-size: 24px;
     }
-    #capture-btn:hover {
+    #capture-btn {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #focus-btn {
+      left: calc(50% + 80px); /* Positioned to the right of capture button */
+      transform: translateX(-50%);
+    }
+    #capture-btn:hover, #focus-btn:hover {
       background-color: rgba(255, 255, 255, 0.7);
     }
     #output {
@@ -117,6 +124,7 @@
   <video id="video" autoplay></video>
   <canvas id="canvas"></canvas>
   <button id="capture-btn" title="Capture Photo">&#128247;</button>
+  <button id="focus-btn" title="Focus Camera">&#128269;</button>
   <div id="filter-buttons">
     <button class="filter-btn filter-none" onclick="setFilter('none')">No Filter</button>
     <button class="filter-btn filter-velvetNoir" onclick="setFilter('velvetNoir')">Velvet Noir</button>
@@ -136,10 +144,21 @@
     const ctx = canvas.getContext('2d');
     const photo = document.getElementById('photo');
     let currentFilter = 'none';
+    let stream = null;
 
-    // Access the camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-      .then(stream => {
+    // Function to start or restart camera with focus settings
+    function startCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop()); // Stop existing stream
+      }
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          focusMode: 'continuous' // Request continuous autofocus
+        }
+      })
+      .then(newStream => {
+        stream = newStream;
         video.srcObject = stream;
         video.onloadedmetadata = () => {
           canvas.width = video.videoWidth;
@@ -150,6 +169,15 @@
       .catch(err => {
         alert('Error accessing camera: ' + err.message);
       });
+    }
+
+    // Initial camera start
+    startCamera();
+
+    // Focus button handler
+    document.getElementById('focus-btn').addEventListener('click', () => {
+      startCamera(); // Restart stream to trigger focus
+    });
 
     // Filter definitions
     const filters = {
