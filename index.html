@@ -3,73 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RealGlow</title>
+  <title>Real Glow Camera App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
+      height: 100vh;
+      overflow: hidden;
     }
-    #video, #canvas {
+    #header {
+      position: fixed;
+      top: 0;
       width: 100%;
-      max-width: 640px;
-      border: 2px solid #333;
-      border-radius: 8px;
+      background-color: #000000;
+      text-align: center;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+    #header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #ffffff;
+    }
+    #canvas {
+      width: 100%;
+      height: calc(100vh - 140px); /* Full height minus header and footer */
+      object-fit: contain;
+      display: block;
+      margin-top: 44px; /* Height of header */
+    }
+    #video {
+      display: none;
     }
     #filter-buttons {
-      margin: 10px 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #000000;
+      padding: 10px 0;
+      overflow-x: auto;
+      white-space: nowrap;
+      z-index: 1000;
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
-      justify-content: center;
+      justify-content: flex-start;
+      scrollbar-width: thin;
+      scrollbar-color: #6200ea #000000;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
+    #filter-buttons::-webkit-scrollbar {
+      height: 8px;
+    }
+    #filter-buttons::-webkit-scrollbar-thumb {
       background-color: #6200ea;
-      color: white;
+      border-radius: 4px;
+    }
+    .filter-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #ffffff;
       border: none;
       border-radius: 5px;
-      transition: background-color 0.3s;
+      display: inline-block;
+      min-width: 100px;
+      text-align: center;
+      transition: transform 0.2s;
     }
-    button:hover {
-      background-color: #3700b3;
+    .filter-btn:hover {
+      transform: scale(1.05);
     }
     #capture-btn {
-      background-color: #d81b60;
+      position: fixed;
+      bottom: 60px; /* Above filter buttons */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
     }
     #capture-btn:hover {
-      background-color: #ad1457;
+      background-color: rgba(255, 255, 255, 0.7);
     }
     #output {
-      margin-top: 20px;
+      display: none; /* Hidden since photos download directly */
     }
-    #photo {
-      max-width: 640px;
-      border: 2px solid #333;
-      border-radius: 8px;
-    }
+    /* Filter button colors based on filter effects */
+    .filter-none { background-color: #333333; }
+    .filter-velvetNoir { background-color: #4a4a4a; } /* Grayscale */
+    .filter-auricGlow { background-color: #f4c430; } /* Warm golden */
+    .filter-crimsonDusk { background-color: #a6192e; } /* Reddish */
+    .filter-vintageHaze { background-color: #c19a6b; } /* Sepia */
+    .filter-lunarFrost { background-color: #4682b4; } /* Cool blue */
+    .filter-highContrast { background-color: #1c2526; } /* Dark high contrast */
   </style>
 </head>
 <body>
-  <h1>Real Glow</h1>
-  <video id="video" autoplay></video>
-  <canvas id="canvas" style="display: none;"></canvas>
-  <div id="filter-buttons">
-    <button onclick="setFilter('none')">No Filter</button>
-    <button onclick="setFilter('velvetNoir')">Velvet Noir</button>
-    <button onclick="setFilter('auricGlow')">Auric Glow</button>
-    <button onclick="setFilter('crimsonDusk')">Crimson Dusk</button>
-    <button onclick="setFilter('vintageHaze')">Vintage Haze</button>
-    <button onclick="setFilter('lunarFrost')">Lunar Frost</button>
-    <button onclick="setFilter('highContrast')">Obsidian Edge</button>
+  <div id="header">
+    <h1>Real Glow</h1>
   </div>
-  <button id="capture-btn" onclick="capturePhoto()">Capture Photo</button>
+  <video id="video" autoplay></video>
+  <canvas id="canvas"></canvas>
+  <button id="capture-btn" title="Capture Photo">&#128247;</button>
+  <div id="filter-buttons">
+    <button class="filter-btn filter-none" onclick="setFilter('none')">No Filter</button>
+    <button class="filter-btn filter-velvetNoir" onclick="setFilter('velvetNoir')">Velvet Noir</button>
+    <button class="filter-btn filter-auricGlow" onclick="setFilter('auricGlow')">Auric Glow</button>
+    <button class="filter-btn filter-crimsonDusk" onclick="setFilter('crimsonDusk')">Crimson Dusk</button>
+    <button class="filter-btn filter-vintageHaze" onclick="setFilter('vintageHaze')">Vintage Haze</button>
+    <button class="filter-btn filter-lunarFrost" onclick="setFilter('lunarFrost')">Lunar Frost</button>
+    <button class="filter-btn filter-highContrast" onclick="setFilter('highContrast')">Obsidian Edge</button>
+  </div>
   <div id="output">
     <img id="photo" alt="Captured Photo">
   </div>
@@ -145,8 +201,6 @@
       }
 
       ctx.putImageData(imageData, 0, 0);
-      video.style.display = 'none';
-      canvas.style.display = 'block';
       requestAnimationFrame(applyFilter);
     }
 
@@ -158,7 +212,7 @@
     // Capture photo
     function capturePhoto() {
       const link = document.createElement('a');
-      link.download = `boujie_photo_${new Date().toISOString()}.png`;
+      link.download = `real_glow_photo_${new Date().toISOString()}.png`;
       link.href = canvas.toDataURL('image/png');
       photo.src = link.href;
       link.click();
